@@ -15,6 +15,9 @@ var kill, killimg;
 var kills;
 var gameOver, gameOverImg;
 var restart, restartImg;
+var life, lifeimg;
+var health;
+ 
 
 function preload(){
 
@@ -33,6 +36,8 @@ function preload(){
     gameOverImg = loadImage("gameover.png");
     restartImg = loadImage("restart.png");
     cityimg = loadImage("city.jpg");
+    lifeimg = loadImage("life.png");
+    
 }
 
 
@@ -57,17 +62,23 @@ ground = createSprite(200, 568, 7000, 20);
   restart.addImage(restartImg);
   restart.scale = 0.5;
 
-  man.setCollider("rectangle", 0, 0, 120, 150);
-  man.debug = true;
+  man.setCollider("rectangle", 15, 0, 60, 100);
+  //man.debug = true;
 
   invisibleground = createSprite(200, 518, 7000, 20);
   invisibleground.visible = false;
+
+  life = createSprite(1000, 70, 20, 20);
+  life.addImage(lifeimg);
+  life.scale = 0.35;
+
+  
 
   //city = createSprite(920, 578, 50, 50);
   //city.addImage(cityimg);
   
   kills = 0;
-
+  health = 5;
 } 
 
 
@@ -75,12 +86,19 @@ function draw(){
 
     background(cityimg);
 
-
+    textSize(30);
+    fill("orange");
     text("KILLS: " + kills, 200, 50);
+
+    textSize(30);
+    fill("red");
+    text("life: " + health, 1035, 77);
+
 
     if (gameState === PLAY) {
 
       gameOver.visible = false;
+      
       restart.visible = false;
       
       if (ground.x < 0) {
@@ -102,19 +120,43 @@ if(keyDown(LEFT_ARROW)){
   arrow2.y = man.y
 }
 
-if (obstaclesGroup.isTouching(man)|| ZombieGroup.isTouching(man)) {
+if (obstaclesGroup.isTouching(man)) {
   gameState = END;
 }
+
+if(ZombieGroup.isTouching(man)){
+  health = health-1;
+  ZombieGroup.destroyEach();
+}
+
+if(health === 0){
+  gameState = END;
+}
+
+
+if(kills === 10){
+  textSize(60);
+  fill("red");
+  text("YOU WON 🤩", 500, 300);
+
+  obstaclesGroup.setLifetimeEach(-1);
+    ZombieGroup.setLifetimeEach(-1);
+    obstaclesGroup.destroyEach();
+    ZombieGroup.destroyEach();
+    obstaclesGroup.setVelocityXEach(0);
+    ZombieGroup.setVelocityXEach(0);
+  }
+
 
 if(ZombieGroup.isTouching(arrow2)){
 ZombieGroup.destroyEach();
 arrow2.destroy();
-kill = createSprite(400, 80, 20, 20);
+kill = createSprite(500, 80, 20, 20);
 kill.addImage(killimg);
 kill.scale = 0.5;
 kill.lifetime = 50;
 
-kills = kills+2;
+kills = kills+1;
 }
 
 
@@ -143,6 +185,8 @@ spawnZombies();
 
 man.collide(invisibleground);
 
+
+
     drawSprites();
 }
 
@@ -151,12 +195,14 @@ function reset() {
   gameOver.visible = false;
   restart.visible = false;
   obstaclesGroup.destroyEach();
+  health=5;
+  kills=0;
   score = 0;
 }
 
 function spawnObstacles() {
   if (frameCount % 250 === 0) {
-    var obstacle = createSprite(200, 558, 10, 40);
+    var obstacle = createSprite(200, 528, 10, 40);
     obstacle.velocityX = 5
     //generate random obstacles
     var rand = Math.round(random(1, 3));
@@ -175,7 +221,7 @@ function spawnObstacles() {
     }
 
     //assign scale and lifetime to the obstacle           
-    obstacle.scale = 0.35;
+    obstacle.scale = 0.45;
     obstacle.lifetime = 300;
 
     //add each obstacle to the group
@@ -211,8 +257,3 @@ function spawnZombies() {
     ZombieGroup.add(zombies);
   }
 }
-
-
-
-
-  
